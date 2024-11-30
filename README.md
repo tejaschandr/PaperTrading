@@ -1,6 +1,4 @@
-<<<<<<< HEAD
-# 426Final
-=======
+
 # Paper Trading Platform
 
 ## Dependencies Required
@@ -16,4 +14,3 @@
 5. Set up the database: `npx prisma db push`
 6. Seed the database: `npx prisma db seed`
 7. Run the development server: `npm run dev`
->>>>>>> master

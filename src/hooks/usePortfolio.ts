@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { PortfolioPosition, StockData } from '@/types/trading';
 
+interface TransactionError{
+  message: string;
+}
 export function usePortfolio() {
   const [portfolio, setPortfolio] = useState<PortfolioPosition[]>([]);
   const [balance, setBalance] = useState<number>(100000);
@@ -68,8 +71,9 @@ export function usePortfolio() {
       setPortfolio(balanceData.positions);
       
       return { success: true, error: null };
-    } catch (err: any) {
-      return { success: false, error: err.message || `Failed to ${action.toLowerCase()} shares` };
+    } catch (err: unknown) {
+      const error = err as TransactionError;
+      return { success: false, error: error.message || `Failed to ${action.toLowerCase()} shares` };
     }
   };
 

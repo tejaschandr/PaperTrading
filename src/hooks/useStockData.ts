@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { StockData, PriceHistoryData } from '@/types/trading';
 
 const API_KEY = process.env.NEXT_PUBLIC_ALPHA_VANTAGE_API_KEY;
-
+interface APIerror{
+  message: string;
+}
 export function useStockData() {
   const [stockData, setStockData] = useState<StockData | null>(null);
   const [priceHistory, setPriceHistory] = useState<PriceHistoryData[]>([]);
@@ -47,9 +49,10 @@ export function useStockData() {
       } else {
         setError('Stock not found');
       }
-    } catch (err) {
+    } catch (err: unknown) {
+      const error = err as APIerror
       setError('Error fetching stock data');
-      console.error('Error:', err);
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }

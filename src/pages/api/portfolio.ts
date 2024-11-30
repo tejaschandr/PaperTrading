@@ -1,11 +1,17 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from './auth/[...nextauth]';
 import prisma from '@/lib/prisma';
 
-export default async function portfolioHandler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const userId = process.env.DEFAULT_USER_ID;
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const session = await getServerSession(req, res, authOptions);
+
+  if (!session || !session.user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  const userId = session.user.id;
+  
 
   if (req.method === 'GET') {
     try {
@@ -22,52 +28,33 @@ export default async function portfolioHandler(
     try {
       const { symbol, shares, avgPrice, action } = req.body;
 
+      // Log the incoming request for debugging
       console.log('Received request:', { symbol, shares, avgPrice, action });
 
+      // Validate inputs
       if (!symbol || !shares || !avgPrice || !action) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
-      if (typeof shares !== 'number' || shares <= 0) {
-        return res.status(400).json({ error: 'Invalid shares amount' });
-      }
-
-      if (typeof avgPrice !== 'number' || avgPrice <= 0) {
-        return res.status(400).json({ error: 'Invalid price' });
-      }
-
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
+      const existingPosition = await prisma.position.findUnique({
+        where: { userId_symbol: { userId, symbol } },
       });
-
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      console.log('Current user state:', user);
 
       if (action === 'BUY') {
         const totalCost = shares * avgPrice;
-        console.log('Purchase attempt:', { totalCost, currentBalance: user.balance });
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+        });
 
-        if (totalCost > user.balance) {
-          return res.status(400).json({ 
-            error: 'Insufficient funds',
-            details: {
-              required: totalCost,
-              available: user.balance
-            }
-          });
+        if (!user || user.balance < totalCost) {
+          return res.status(400).json({ error: 'Insufficient funds' });
         }
 
+        // Begin transaction
         const result = await prisma.$transaction(async (tx) => {
           const updatedUser = await tx.user.update({
             where: { id: userId },
             data: { balance: user.balance - totalCost },
-          });
-
-          const existingPosition = await tx.position.findUnique({
-            where: { userId_symbol: { userId, symbol } },
           });
 
           let position;
@@ -80,26 +67,16 @@ export default async function portfolioHandler(
 
             position = await tx.position.update({
               where: { userId_symbol: { userId, symbol } },
-              data: { 
-                shares: newShares,
-                avgPrice: newAvgPrice
-              },
+              data: { shares: newShares, avgPrice: newAvgPrice },
             });
           } else {
             position = await tx.position.create({
-              data: {
-                userId,
-                symbol,
-                shares,
-                avgPrice
-              },
+              data: { userId, symbol, shares, avgPrice },
             });
           }
 
           return { user: updatedUser, position };
         });
-
-        console.log('Transaction result:', result);
 
         return res.status(200).json({
           message: 'Purchase successful',
@@ -109,16 +86,20 @@ export default async function portfolioHandler(
       }
 
       if (action === 'SELL') {
-        const existingPosition = await prisma.position.findUnique({
-          where: { userId_symbol: { userId, symbol } },
-        });
-
         if (!existingPosition || existingPosition.shares < shares) {
           return res.status(400).json({ error: 'Insufficient shares' });
         }
 
         const totalValue = shares * avgPrice;
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+        });
 
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Begin transaction
         const result = await prisma.$transaction(async (tx) => {
           const updatedUser = await tx.user.update({
             where: { id: userId },
@@ -149,7 +130,6 @@ export default async function portfolioHandler(
       }
 
       return res.status(400).json({ error: 'Invalid action' });
-      
     } catch (error) {
       console.error('Portfolio update error:', error);
       return res.status(500).json({ error: 'Failed to update portfolio' });

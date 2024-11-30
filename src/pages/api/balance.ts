@@ -1,11 +1,16 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from './auth/[...nextauth]';
 import prisma from '@/lib/prisma';
 
-export default async function balanceHandler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const userId = process.env.DEFAULT_USER_ID;
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const session = await getServerSession(req, res, authOptions);
+
+  if (!session || !session.user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  const userId = session.user.id;
 
   if (req.method === 'GET') {
     try {
@@ -23,7 +28,6 @@ export default async function balanceHandler(
         positions: user.positions,
       });
     } catch (error) {
-      console.error('Balance fetch error:', error);
       return res.status(500).json({ error: 'Failed to fetch balance' });
     }
   }
