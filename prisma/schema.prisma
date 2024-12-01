@@ -3,30 +3,31 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id            String     @id @default(cuid())
-  name          String?
-  email         String     @unique
-  password      String
-  balance       Float      @default(100000) // Starting balance $100,000
-  positions     Position[]
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id        String     @id @default(dbgenerated("uuid_generate_v4()"))
+  name      String?
+  email     String     @unique
+  password  String
+  balance   Float?     @default(100000)
+  createdat DateTime?  @default(now()) @db.Timestamp(6)
+  updatedat DateTime?  @default(now()) @db.Timestamp(6)
+  Position  Position[]
 }
 
 model Position {
-  id        String   @id @default(cuid())
+  id        String    @id @default(dbgenerated("uuid_generate_v4()"))
   symbol    String
   shares    Int
-  avgPrice  Float
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  avgprice  Float
+  userid    String
+  createdat DateTime? @default(now()) @db.Timestamp(6)
+  updatedat DateTime? @default(now()) @db.Timestamp(6)
+  User      User      @relation(fields: [userid], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  @@unique([userId, symbol])
+  @@unique([userid, symbol])
 }
