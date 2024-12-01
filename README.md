@@ -2,6 +2,8 @@
 
 Paper Trading Platform designed to simulate stock market trading without real money risk. Users can create accounts, manage portfolios, execute trades, and track their performance using real-time market data.
 
+## Deployment Link
+https://paper-trading-kappa.vercel.app/
 
 ## Features
 
@@ -24,7 +26,7 @@ Paper Trading Platform designed to simulate stock market trading without real mo
 - Backend:
   - Next.js API Routes
   - Prisma ORM for database management
-  - SQLite database
+  - PostgreSQL database
   - NextAuth.js for authentication
 
 - Third Party Integration:
