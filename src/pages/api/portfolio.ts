@@ -28,10 +28,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { symbol, shares, avgPrice, action } = req.body;
 
-      // Log the incoming request for debugging
       console.log('Received request:', { symbol, shares, avgPrice, action });
 
-      // Validate inputs
       if (!symbol || !shares || !avgPrice || !action) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
@@ -50,7 +48,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(400).json({ error: 'Insufficient funds' });
         }
 
-        // Begin transaction
         const result = await prisma.$transaction(async (tx) => {
           const updatedUser = await tx.user.update({
             where: { id: userId },
@@ -99,7 +96,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(404).json({ error: 'User not found' });
         }
 
-        // Begin transaction
         const result = await prisma.$transaction(async (tx) => {
           const updatedUser = await tx.user.update({
             where: { id: userId },

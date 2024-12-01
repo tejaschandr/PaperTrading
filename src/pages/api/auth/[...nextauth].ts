@@ -5,7 +5,6 @@ import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -13,7 +12,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
@@ -32,15 +31,17 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Return type must match User interface
         return {
           id: user.id,
           email: user.email,
-          name: user.name || undefined // Convert null to undefined
+          name: user.name || undefined  
         };
       }
     })
   ],
+  pages: {
+    signIn: '/auth/login',
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -55,12 +56,8 @@ export const authOptions: NextAuthOptions = {
       return session;
     }
   },
-  pages: {
-    signIn: '/auth/login',
-  },
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   debug: process.env.NODE_ENV === 'development',
 };

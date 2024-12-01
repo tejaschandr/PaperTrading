@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import { signIn } from 'next-auth/react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -15,20 +16,31 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/auth/register', {
+      const registerRes = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
       });
 
-      if (res.ok) {
-        router.push('/auth/login'); 
+      if (registerRes.ok) {
+        const result = await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        });
+
+        if (result?.error) {
+          setError(result.error);
+        } else {
+          router.push('/'); 
+        }
       } else {
-        const error = await res.json();
+        const error = await registerRes.json();
         setError(error.message);
       }
     } catch (err) {
       setError('An error occurred during registration');
+      console.error('Registration error:', err);
     }
   };
 
@@ -46,7 +58,6 @@ export default function Register() {
                 placeholder="Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                required
               />
             </div>
             <div>

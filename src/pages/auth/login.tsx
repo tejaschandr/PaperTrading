@@ -24,7 +24,7 @@ export default function Login() {
       if (result?.error) {
         setError(result.error);
       } else {
-        router.push('/'); // Redirect to trading dashboard
+        router.push('/');
       }
     } catch (err) {
       setError('An error occurred during login');

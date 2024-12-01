@@ -4,10 +4,8 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  // Create a hashed password for the default user
   const hashedPassword = await bcrypt.hash('defaultpassword123', 10);
 
-  // Create default user with all required fields
   const user = await prisma.user.upsert({
     where: { email: 'default@example.com' },
     update: {},
@@ -16,7 +14,7 @@ async function main() {
       email: 'default@example.com',
       password: hashedPassword,
       name: 'Default User',
-      balance: 100000, // Starting with $100,000
+      balance: 100000,
     },
   });
 
