@@ -1,13 +1,7 @@
 # Paper Trading Platform
 
-This is our COMP 426 Final Project - a Paper Trading Platform designed to simulate stock market trading without real money risk. Users can create accounts, manage portfolios, execute trades, and track their performance using real-time market data.
+Paper Trading Platform designed to simulate stock market trading without real money risk. Users can create accounts, manage portfolios, execute trades, and track their performance using real-time market data.
 
-## Team Members
-
-Tejas Chandramouli, Swagat Adhikary
-
-## [Presentation Video](link-to-video)
-[Add link to your presentation video here]
 
 ## Features
 
