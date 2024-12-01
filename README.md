@@ -9,7 +9,6 @@ Tejas Chandramouli, Swagat Adhikary
 ## [Presentation Video](link-to-video)
 [Add link to your presentation video here]
 
-
 ## Features
 
 - User Authentication & Personal Portfolios
